@@ -18,9 +18,58 @@ if (typeof chrome.extension != 'undefined') {
                 return document.querySelector(selector);
             }
 
+            function $$(selector) {
+                return document.querySelectorAll(selector);
+            }
+
             self.getCurrentSong = function getCurrentSong() {
                 var currentSong = Grooveshark.getCurrentSongStatus();
                 return currentSong.song.artistName + " - " + currentSong.song.songName;
+            }
+
+            self.volume = function volume(value) {
+                if (typeof value == 'undefined') {
+                    return Grooveshark.getVolume();
+                } else {
+                    Grooveshark.setVolume(value);
+                }
+            }
+
+            self.next = function next() {
+                Grooveshark.next();
+            }
+
+            self.prev = function prev() {
+                Grooveshark.previous();
+            }
+
+            self.pause = function pause() {
+                Grooveshark.pause();
+            }
+
+            self.play = function play() {
+                Grooveshark.play();
+            }
+
+            self.getPlaylist = function getPlaylist() {
+                // No API for accessing this data :(
+
+                var queue = $$('.queue-item');
+                var playlist = new Array();
+
+                for (var i=0; i<queue.length; i++) {
+                    var song = queue[i];
+                    var item = new Object();
+
+                    item['playing'] = song.classList.contains('queue-item-active');
+                    item['artist'] = song.querySelector('a.artist').innerText;
+                    item['song'] = song.querySelector('a.song').innerText;
+                    item['album_art'] = song.querySelector('.album-art img').getAttribute('src');
+
+                    playlist.push(item);
+                }
+
+                return playlist;
             }
         };
 
