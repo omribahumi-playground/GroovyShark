@@ -19,9 +19,8 @@ if (typeof chrome.extension != 'undefined') {
             }
 
             self.getCurrentSong = function getCurrentSong() {
-                var songName = $("#now-playing-metadata a").innerHTML;
-                var artistName = $(".data-container a").innerHTML;
-                return artistName + " - " + songName;
+                var currentSong = Grooveshark.getCurrentSongStatus();
+                return currentSong.song.artistName + " - " + currentSong.song.songName;
             }
         };
 
