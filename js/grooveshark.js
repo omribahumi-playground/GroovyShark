@@ -1,3 +1,5 @@
+// Grooveshark have a cool API exposed on their page as "Grooveshark" javascript object
+// In order to access it from our script, we must inject ourselves in a <script> tag
 if (typeof chrome.extension != 'undefined') {
     var s = document.createElement('script');
     s.src = chrome.extension.getURL("js/grooveshark.js");
