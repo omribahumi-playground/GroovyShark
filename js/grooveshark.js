@@ -17,8 +17,8 @@ if (typeof chrome.extension != 'undefined') {
             }
 
             self.getCurrentSong = function getCurrentSong() {
-                var songName = $("#now-playing-metadata").querySelector("a").innerHTML;
-                var artistName = $(".data-container").querySelector("a").innerHTML;
+                var songName = $("#now-playing-metadata a").innerHTML;
+                var artistName = $(".data-container a").innerHTML;
                 return artistName + " - " + songName;
             }
         };
