@@ -73,6 +73,40 @@ if (typeof chrome.extension != 'undefined') {
             }
         };
 
-        window.GroovyPlayer = new GroovesharkPlayer();
+        GroovyPlayer = new GroovesharkPlayer();
+        window.GroovyPlayer = GroovyPlayer;
+
+        var ws = new WebSocket("ws://localhost:8888/ws/server/dummyClientId");
+        window.ws = ws; // for debugging purposes
+
+        ws.sendJson = function sendJson(data) {
+            ws.send(JSON.stringify(data));
+        };
+
+        ws.onopen = function(){
+            console.log("WebSocket connected");
+            ws.sendJson({msg: "Hello from server"});
+        };
+
+        ws.onclose = function(){
+            console.log("WebSocket disconnected");
+        };
+
+        ws.onmessage = function(message){
+            data = JSON.parse(message.data);
+            if (data['type'] == 'call') {
+                func = GroovyPlayer[data['call']['function']];
+                var ret = null;
+                if (typeof data['call']['arguments'] != undefined) {
+                    ret = func.apply(GroovyPlayer, data['call']['arguments']);
+                } else {
+                    ret = func.apply(GroovyPlayer);
+                }
+
+                ws.sendJson({'type': 'return', 'call': data['call'], 'value': ret});
+            } else {
+                console.log("Unknown message");
+            }
+        };
     });
 }
