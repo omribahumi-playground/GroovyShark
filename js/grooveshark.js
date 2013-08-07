@@ -85,7 +85,6 @@ if (typeof chrome.extension != 'undefined') {
 
         ws.onopen = function(){
             console.log("WebSocket connected");
-            ws.sendJson({msg: "Hello from server"});
         };
 
         ws.onclose = function(){
