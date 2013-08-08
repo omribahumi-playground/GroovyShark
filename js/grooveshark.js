@@ -14,12 +14,12 @@ if (typeof chrome.extension != 'undefined') {
         var GroovesharkPlayer = function() {
             var self = this;
 
-            function $(selector) {
-                return document.querySelector(selector);
+            function $(selector, scope) {
+                return (scope || document).querySelector(selector);
             }
 
-            function $$(selector) {
-                return document.querySelectorAll(selector);
+            function $$(selector, scope) {
+                return (scope || document).querySelectorAll(selector);
             }
 
             self.getCurrentSong = function getCurrentSong() {
@@ -62,9 +62,9 @@ if (typeof chrome.extension != 'undefined') {
                     var item = new Object();
 
                     item['playing'] = song.classList.contains('queue-item-active');
-                    item['artist'] = song.querySelector('a.artist').innerText;
-                    item['song'] = song.querySelector('a.song').innerText;
-                    item['album_art'] = song.querySelector('.album-art img').getAttribute('src');
+                    item['artist'] = $('a.artist', song).innerText;
+                    item['song'] = $('a.song', song).innerText;
+                    item['album_art'] = $('.album-art img', song).getAttribute('src');
 
                     playlist.push(item);
                 }
