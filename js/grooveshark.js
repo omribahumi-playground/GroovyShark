@@ -76,7 +76,7 @@ if (typeof chrome.extension != 'undefined') {
         GroovyPlayer = new GroovesharkPlayer();
         window.GroovyPlayer = GroovyPlayer;
 
-        var ws = new WebSocket("ws://localhost:8888/ws/server/dummyClientId");
+        var ws = new WebSocket("ws://localhost:8888/ws/server/");
         window.ws = ws; // for debugging purposes
 
         ws.sendJson = function sendJson(data) {
