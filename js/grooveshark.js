@@ -23,10 +23,71 @@ if (typeof chrome.extension != 'undefined') {
                 return (scope || document).querySelectorAll(selector);
             }
 
+            var lastSong = null;
+            var lastPlayState = null;
+            function onSongStatus(status) {
+                // ignore the loading/none statuses, it's not interesting
+                if (status.status == 'loading' || status.status == 'none') {
+                    return;
+                }
+                if (lastPlayState == null || lastPlayState != status.status) {
+                    self.dispatchEvent('playState', {'state': status.status});
+                    lastPlayState = status.status;
+                }
+                if (lastSong == null ||
+                    lastSong.songName != status.song.songName ||
+                    lastSong.artistName != status.song.artistName) {
+                    self.dispatchEvent('songChange',
+                            {'song': {'songName': status.song.songName,
+                                      'artistName': status.song.artistName}});
+                    lastSong = status.song;
+                }
+                console.log('onSongStatus');
+                console.log(status);
+            }
+            gs.setSongStatusCallback(onSongStatus);
+
+            // events
+            var events = {
+                // special event type that catches all events
+                // *(type, event)
+                '*': new Array(),
+
+                // playState(event)
+                // event.state: 'playing', 'paused'
+                'playState': new Array(),
+
+                // songChange(event)
+                // event.song: {'songName': 'song name', 'artistName': 'artist name'}
+                'songChange': new Array()
+            };
+
+            self.addEventListener = function addEventListener(type, listener) {
+                events[type].push(listener);
+            };
+            self.removeEventListner = function removeEventListener(type, listener) {
+                var index = events[type].indexOf(listener);
+                if (index != -1) {
+                    events[type].splice(index, 1);
+                }
+            };
+            self.dispatchEvent = function dispatchEvent(type, eventObject) {
+                console.log('Dispatching event ' + type);
+                console.log(eventObject);
+
+                for (var i=0; i<events[type].length; i++) {
+                    events[type][i].call(self, eventObject);
+                }
+                for (var i=0; i<events['*'].length; i++) {
+                    events['*'][i].call(self, type, eventObject);
+                }
+            };
+
             // exposed functions
             self.getCurrentSong = function getCurrentSong() {
                 var currentSong = gs.getCurrentSongStatus();
-                return currentSong.song.artistName + " - " + currentSong.song.songName;
+                return {'artistName': currentSong.song.artistName,
+                        'songName': currentSong.song.songName};
             }
 
             self.volume = function volume(value) {
@@ -97,7 +158,7 @@ if (typeof chrome.extension != 'undefined') {
                 if (data['type'] == 'call') {
                     func = player[data['call']['function']];
                     var ret = null;
-                    if (typeof data['call']['arguments'] != undefined) {
+                    if (typeof data['call']['arguments'] != 'undefined') {
                         ret = func.apply(player, data['call']['arguments']);
                     } else {
                         ret = func.apply(player);
@@ -108,6 +169,10 @@ if (typeof chrome.extension != 'undefined') {
                     console.log("Unknown message");
                 }
             };
+
+            player.addEventListener('*', function(type, event){
+                ws.sendJson({'type': 'event', 'event': {'type': type, 'data': event}});
+            });
         };
 
         client = new GroovyClient(new GroovesharkPlayer(Grooveshark), "localhost:8888");
