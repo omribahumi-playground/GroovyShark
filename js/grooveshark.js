@@ -11,9 +11,10 @@ if (typeof chrome.extension != 'undefined') {
     window.addEventListener("load", function(){
         console.log("Grooveshark onload");
 
-        var GroovesharkPlayer = function() {
+        var GroovesharkPlayer = function(gs) {
             var self = this;
 
+            // internal functions
             function $(selector, scope) {
                 return (scope || document).querySelector(selector);
             }
@@ -22,33 +23,34 @@ if (typeof chrome.extension != 'undefined') {
                 return (scope || document).querySelectorAll(selector);
             }
 
+            // exposed functions
             self.getCurrentSong = function getCurrentSong() {
-                var currentSong = Grooveshark.getCurrentSongStatus();
+                var currentSong = gs.getCurrentSongStatus();
                 return currentSong.song.artistName + " - " + currentSong.song.songName;
             }
 
             self.volume = function volume(value) {
                 if (typeof value == 'undefined') {
-                    return Grooveshark.getVolume();
+                    return gs.getVolume();
                 } else {
-                    Grooveshark.setVolume(value);
+                    gs.setVolume(value);
                 }
             }
 
             self.next = function next() {
-                Grooveshark.next();
+                gs.next();
             }
 
             self.prev = function prev() {
-                Grooveshark.previous();
+                gs.previous();
             }
 
             self.pause = function pause() {
-                Grooveshark.pause();
+                gs.pause();
             }
 
             self.play = function play() {
-                Grooveshark.play();
+                gs.play();
             }
 
             self.getPlaylist = function getPlaylist() {
@@ -73,39 +75,41 @@ if (typeof chrome.extension != 'undefined') {
             }
         };
 
-        GroovyPlayer = new GroovesharkPlayer();
-        window.GroovyPlayer = GroovyPlayer;
+        var GroovyClient = function(player, server) {
+            var self = this;
 
-        var ws = new WebSocket("ws://localhost:8888/ws/server/");
-        window.ws = ws; // for debugging purposes
+            var ws = new WebSocket("ws://" + server + "/ws/server");
 
-        ws.sendJson = function sendJson(data) {
-            ws.send(JSON.stringify(data));
-        };
-
-        ws.onopen = function(){
-            console.log("WebSocket connected");
-        };
-
-        ws.onclose = function(){
-            console.log("WebSocket disconnected");
-        };
-
-        ws.onmessage = function(message){
-            data = JSON.parse(message.data);
-            if (data['type'] == 'call') {
-                func = GroovyPlayer[data['call']['function']];
-                var ret = null;
-                if (typeof data['call']['arguments'] != undefined) {
-                    ret = func.apply(GroovyPlayer, data['call']['arguments']);
-                } else {
-                    ret = func.apply(GroovyPlayer);
-                }
-
-                ws.sendJson({'type': 'return', 'call': data['call'], 'value': ret});
-            } else {
-                console.log("Unknown message");
+            ws.sendJson = function sendJson(data) {
+                this.send(JSON.stringify(data));
             }
+
+            ws.onopen = function(){
+                console.log("WebSocket connected");
+            };
+
+            ws.onclose = function(){
+                console.log("WebSocket disconnected");
+            };
+
+            ws.onmessage = function(message){
+                data = JSON.parse(message.data);
+                if (data['type'] == 'call') {
+                    func = player[data['call']['function']];
+                    var ret = null;
+                    if (typeof data['call']['arguments'] != undefined) {
+                        ret = func.apply(player, data['call']['arguments']);
+                    } else {
+                        ret = func.apply(player);
+                    }
+
+                    ws.sendJson({'type': 'return', 'call': data['call'], 'value': ret});
+                } else {
+                    console.log("Unknown message");
+                }
+            };
         };
+
+        client = new GroovyClient(new GroovesharkPlayer(Grooveshark), "localhost:8888");
     });
 }
