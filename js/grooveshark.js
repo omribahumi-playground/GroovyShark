@@ -175,6 +175,6 @@ if (typeof chrome.extension != 'undefined') {
             });
         };
 
-        client = new GroovyClient(new GroovesharkPlayer(Grooveshark), "localhost:8888");
+        client = new GroovyClient(new GroovesharkPlayer(Grooveshark), "micro.linuxil.org");
     });
 }

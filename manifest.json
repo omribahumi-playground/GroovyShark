@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
 
-  "name": "Control cloud music services remotely",
+  "name": "GroovyShark",
   "description": "This extension lets you control music played on your desktop browser from your mobiel phone.",
   "version": "1.0",
 
